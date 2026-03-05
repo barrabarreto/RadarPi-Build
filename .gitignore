@@ -1,0 +1,5 @@
+config.json
+*.jpg
+__pycache__/
+logs/
+.env
