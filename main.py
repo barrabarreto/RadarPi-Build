@@ -25,24 +25,41 @@ import threading
 #  CONFIGURATION — edit here
 # ────────────────────────────────────────────────
 
-RTSP_URL  = "rtsp://user:password@192.168.1.x:554/stream"
-BOT_TOKEN = ""          # Telegram bot token
-CHAT_ID   = ""          # Telegram chat / group ID
+import json
 
-# Distance between the two IR sensors (in meters)
-SENSOR_DISTANCE_M = 2.0   # ← adjust to your actual installation (max 2m)
+CONFIG_FILE = "config.json"
 
-# Speed limit in km/h
-SPEED_LIMIT_KMH = 30.0
+def load_or_create_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    
+    print("\n--- 🛠️ CONFIGURAÇÃO INICIAL DO RADAR ---")
+    print("Nenhum arquivo de configuração encontrado. Por favor, insira os dados:")
+    
+    config = {
+        "RTSP_URL": input("URL RTSP da Câmera (ex: rtsp://user:pass@192.168.1.x:554/stream): "),
+        "BOT_TOKEN": input("Token do Bot do Telegram: "),
+        "CHAT_ID": input("ID do Chat/Grupo do Telegram: "),
+        "SENSOR_DISTANCE_M": float(input("Distância entre sensores em metros (ex: 2.0): ")),
+        "SPEED_LIMIT_KMH": float(input("Limite de velocidade em km/h (ex: 30.0): "))
+    }
+    
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=4)
+    
+    print(f"✅ Configuração salva em {CONFIG_FILE}!\n")
+    return config
 
-# GPIOs (physical BOARD numbering — Orange Pi Zero uses WiringOP)
-# PA6 = WiringOP pin 6  |  PA1 = WiringOP pin 0
-# Use the physical pin numbers below with OPi.GPIO in BOARD mode
-GPIO_SENSOR_1 = 7    # PA6  → physical pin 7  on the 26-pin header
-GPIO_SENSOR_2 = 11   # PA1  → physical pin 11 on the 26-pin header
+# Carrega as configurações
+config_data = load_or_create_config()
 
-# Timeout: if sensor 2 does not trigger within X seconds, discard the reading
-TIMEOUT_SECONDS = 5.0
+# Mapeia as variáveis para o resto do script
+RTSP_URL          = config_data["RTSP_URL"]
+BOT_TOKEN         = config_data["BOT_TOKEN"]
+CHAT_ID           = config_data["CHAT_ID"]
+SENSOR_DISTANCE_M = config_data["SENSOR_DISTANCE_M"]
+SPEED_LIMIT_KMH   = config_data["SPEED_LIMIT_KMH"]
 
 # ────────────────────────────────────────────────
 #  GPIO IMPORT (OPi.GPIO for Orange Pi)
